@@ -1,0 +1,100 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.pyc
+*.pwc
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.venv*/
+env.bak/
+venv.bak/
+
+# VSCode and other IDEs
+.vscode/
+.idea/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask/Django instance folder
+instance/
+
+# PyInstaller
+#  Usually these files are written to a folder named "dist"
+#  However, feel free to add/remove or comment out this line if you track pyinstaller bundles.
+*.spec
+
+# Sphinx documentation
+docs/_build/
+docs/_build/html/_sources/
+docs/_build/html/_static/
+build/docs/
+
+# Pyre type checker
+.pyre/
+
+# mypy type checker
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pylint reports
+pylint-report.txt
+
+# Coverage reports
+.coverage
+.coverage.*
+
+# OSX / Windows files
+.DS_Store
+Thumbs.db
+
+
+open_deep_research
+venv
