@@ -9,7 +9,7 @@ from langgraph.graph import START, END, StateGraph
 from langgraph.types import interrupt, Command
 
 from open_deep_research.state import ReportStateInput, ReportStateOutput, Sections, ReportState, SectionState, SectionOutputState, Queries, Feedback
-from open_deep_research.prompts import report_planner_query_writer_instructions, report_planner_instructions, query_writer_instructions, section_writer_instructions, final_section_writer_instructions, section_grader_instructions
+from open_deep_research.prompts import personality_query_writer_instructions, personality_planner_instructions, section_query_writer_instructions, personality_section_writer_instructions, final_personality_section_writer_instructions, personality_section_grader_instructions
 from open_deep_research.configuration import Configuration
 from open_deep_research.utils import tavily_search_async, deduplicate_and_format_sources, format_sections, perplexity_search, get_config_value
 
@@ -37,7 +37,7 @@ async def generate_report_plan(state: ReportState, config: RunnableConfig):
     structured_llm = writer_model.with_structured_output(Queries)
 
     # Format system instructions
-    system_instructions_query = report_planner_query_writer_instructions.format(topic=topic, report_organization=report_structure, number_of_queries=number_of_queries)
+    system_instructions_query = personality_query_writer_instructions.format(topic=topic, report_organization=report_structure, number_of_queries=number_of_queries)
 
     # Generate queries  
     results = structured_llm.invoke([SystemMessage(content=system_instructions_query)]+[HumanMessage(content="Generate search queries that will help with planning the sections of the report.")])
@@ -59,7 +59,7 @@ async def generate_report_plan(state: ReportState, config: RunnableConfig):
         raise ValueError(f"Unsupported search API: {configurable.search_api}")
 
     # Format system instructions
-    system_instructions_sections = report_planner_instructions.format(topic=topic, report_organization=report_structure, context=source_str, feedback=feedback)
+    system_instructions_sections = personality_planner_instructions.format(person=person, report_organization=report_structure, context=source_str, feedback=feedback)
 
     # Set the planner provider
     if isinstance(configurable.planner_provider, str):
@@ -89,7 +89,7 @@ def human_feedback(state: ReportState, config: RunnableConfig) -> Command[Litera
     """ Get feedback on the report plan """
 
     # Get sections
-    topic = state["topic"]
+    person = state["person"]
     sections = state['sections']
     sections_str = "\n\n".join(
         f"Section: {section.name}\n"
@@ -138,7 +138,7 @@ def generate_queries(state: SectionState, config: RunnableConfig):
     structured_llm = writer_model.with_structured_output(Queries)
 
     # Format system instructions
-    system_instructions = query_writer_instructions.format(topic=topic, section_topic=section.description, number_of_queries=number_of_queries)
+    system_instructions = section_query_writer_instructions.format(topic=topic, section_topic=section.description, number_of_queries=number_of_queries)
 
     # Generate queries  
     queries = structured_llm.invoke([SystemMessage(content=system_instructions)]+[HumanMessage(content="Generate search queries on the provided topic.")])
@@ -184,7 +184,7 @@ def write_section(state: SectionState, config: RunnableConfig) -> Command[Litera
     configurable = Configuration.from_runnable_config(config)
 
     # Format system instructions
-    system_instructions = section_writer_instructions.format(topic=topic, section_title=section.name, section_topic=section.description, context=source_str, section_content=section.content)
+    system_instructions = personality_section_writer_instructions.format(topic=topic, section_title=section.name, section_topic=section.description, context=source_str, section_content=section.content)
 
     # Generate section  
     writer_provider = get_config_value(configurable.writer_provider)
@@ -196,11 +196,11 @@ def write_section(state: SectionState, config: RunnableConfig) -> Command[Litera
     section.content = section_content.content
 
     # Grade prompt 
-    section_grader_instructions_formatted = section_grader_instructions.format(topic=topic, section_topic=section.description,section=section.content)
+    personality_section_grader_instructions_formatted = personality_section_grader_instructions.format(topic=topic, section_topic=section.description,section=section.content)
 
     # Feedback 
     structured_llm = writer_model.with_structured_output(Feedback)
-    feedback = structured_llm.invoke([SystemMessage(content=section_grader_instructions_formatted)]+[HumanMessage(content="Grade the report and consider follow-up questions for missing information:")])
+    feedback = structured_llm.invoke([SystemMessage(content=personality_section_grader_instructions_formatted)]+[HumanMessage(content="Grade the report and consider follow-up questions for missing information:")])
 
     if feedback.grade == "pass" or state["search_iterations"] >= configurable.max_search_depth:
         # Publish the section to completed sections 
@@ -227,7 +227,7 @@ def write_final_sections(state: SectionState, config: RunnableConfig):
     completed_report_sections = state["report_sections_from_research"]
     
     # Format system instructions
-    system_instructions = final_section_writer_instructions.format(topic=topic, section_title=section.name, section_topic=section.description, context=completed_report_sections)
+    system_instructions = final_personality_section_writer_instructions.format(topic=topic, section_title=section.name, section_topic=section.description, context=completed_report_sections)
 
     # Generate section  
     writer_provider = get_config_value(configurable.writer_provider)

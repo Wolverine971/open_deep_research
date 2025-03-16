@@ -96,5 +96,9 @@ pylint-report.txt
 Thumbs.db
 
 
-open_deep_research
+open_deep_researchh
 venv
+
+.env
+
+.langgraph_api
